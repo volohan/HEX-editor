@@ -5,6 +5,7 @@ import os
 class Buffer:
     def __init__(self, file_name):
         self.row_count = 30
+        self.chunkSize = 4194304
         self.encoding = 'mac_cyrillic'
         self._16_base = ['0', '1', '2', '3', '4', '5', '6', '7',
                          '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
@@ -24,14 +25,14 @@ class Buffer:
     def write_data(self, file):
         self.file.seek(0)
         for i in sorted(self.extended_bytes.keys()):
-            while i - file.tell() > 4194304:
-                file.write(self.file.read(4194304))
+            while i - file.tell() > self.chunkSize:
+                file.write(self.file.read(self.chunkSize))
             file.write(self.file.read(i - file.tell()))
             file.write(self.extended_bytes[i])
-        data = self.file.read(4194304)
+        data = self.file.read(self.chunkSize)
         while len(data) != 0:
             file.write(data)
-            data = self.file.read(4194304)
+            data = self.file.read(self.chunkSize)
 
     # Обновление сдвига
     def update_data(self, shift):
