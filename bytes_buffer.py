@@ -110,39 +110,42 @@ class Buffer:
             if self.byte_index[index] in self.extended_bytes:
                 shift = 0
                 try:
-                    while self.byte_index[index - shift - 1] == self.byte_index[index]:
+                    while self.byte_index[index - shift - 1] == \
+                            self.byte_index[index]:
                         shift += 1
                 except KeyError:
                     pass
-                log = hex_logging.LogRecord(self.byte_index[index], self.extended_bytes[self.byte_index[index]], byte, shift, is_insert)
+                log = hex_logging.LogRecord(self.byte_index[index],
+                                            self.extended_bytes[
+                                                self.byte_index[index]],
+                                            byte, shift, is_insert)
                 if is_insert:
-                    self.extended_bytes[self.byte_index[index]][shift] = byte[0]
+                    self.extended_bytes[self.byte_index[index]][shift] = \
+                        byte[0]
                 else:
-                    self.extended_bytes[self.byte_index[index]].insert(shift + 1,
-                                                                       byte[0])
+                    self.extended_bytes[self.byte_index[index]].insert(
+                        shift + 1, byte[0])
             else:
                 new = bytearray()
                 if is_insert:
-                    log = hex_logging.LogRecord(self.byte_index[index], None,
-                                                          byte, 0,
-                                                          is_insert)
+                    log = hex_logging.LogRecord(self.byte_index[index],
+                                                None, byte, 0, is_insert)
                 elif index != -1:
                     new = bytearray(self.shown[index: index + 1])
-                    log = hex_logging.LogRecord(self.byte_index[index], None,
-                                                          byte, 1,
-                                                          is_insert)
+                    log = hex_logging.LogRecord(self.byte_index[index],
+                                                None, byte, 1, is_insert)
                 else:
                     self.file.seek(self.byte_index[index])
                     new = bytearray(self.file.read(1))
-                    log = hex_logging.LogRecord(self.byte_index[index], None,
-                                                          byte, 1,
-                                                          is_insert)
+                    log = hex_logging.LogRecord(self.byte_index[index],
+                                                None, byte, 1, is_insert)
                 new.append(byte[0])
                 self.extended_bytes[self.byte_index[index]] = new
         except KeyError:
             if 0 not in self.extended_bytes:
                 self.extended_bytes[0] = self.shown[0:1]
-            log = hex_logging.LogRecord(0, self.extended_bytes[0], byte, 1, is_insert)
+            log = hex_logging.LogRecord(0, self.extended_bytes[0],
+                                        byte, 1, is_insert)
             self.extended_bytes[0].insert(0, byte[0])
         self.logger.add(log)
 
@@ -165,14 +168,19 @@ class Buffer:
         if self.byte_index[index] in self.extended_bytes:
             shift = 0
             try:
-                while self.byte_index[index - 1 - shift] == self.byte_index[index]:
+                while self.byte_index[index - 1 - shift] == \
+                        self.byte_index[index]:
                     shift += 1
             except KeyError:
                 pass
-            log = hex_logging.LogRecord(self.byte_index[index], self.extended_bytes[self.byte_index[index]], b'', shift, True)
+            log = hex_logging.LogRecord(self.byte_index[index],
+                                        self.extended_bytes[
+                                            self.byte_index[index]],
+                                        b'', shift, True)
             self.extended_bytes[self.byte_index[index]].pop(shift)
         else:
-            log = hex_logging.LogRecord(self.byte_index[index], None, b'', 0, True)
+            log = hex_logging.LogRecord(self.byte_index[index],
+                                        None, b'', 0, True)
             self.extended_bytes[self.byte_index[index]] = bytearray()
         self.logger.add(log)
 
