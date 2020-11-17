@@ -110,7 +110,7 @@ class Buffer:
             if self.byte_index[index] in self.extended_bytes:
                 shift = 0
                 try:
-                    while self.byte_index[index - shift - 1] == \
+                    while self.byte_index[index - shift - 1] ==\
                             self.byte_index[index]:
                         shift += 1
                 except KeyError:
@@ -120,7 +120,7 @@ class Buffer:
                                                 self.byte_index[index]],
                                             byte, shift, is_insert)
                 if is_insert:
-                    self.extended_bytes[self.byte_index[index]][shift] = \
+                    self.extended_bytes[self.byte_index[index]][shift] =\
                         byte[0]
                 else:
                     self.extended_bytes[self.byte_index[index]].insert(
