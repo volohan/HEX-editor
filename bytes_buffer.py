@@ -1,3 +1,4 @@
+from hex_searching import Searcher
 import hex_logging
 import os
 
@@ -5,16 +6,20 @@ import os
 class Buffer:
     def __init__(self, file_name):
         self.row_count = 30
-        self.chunkSize = 4194304
+        self.chunk_size = 4194304
         self.encoding = 'mac_cyrillic'
         self._16_base = ['0', '1', '2', '3', '4', '5', '6', '7',
                          '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
         # Запоминание данных
+        self.file_name = file_name
         self.file = open(file_name, 'br')
         self.file_size = os.path.getsize(file_name)
         self.extended_bytes = {}
         self.logger = hex_logging.Logger(self.extended_bytes)
         self.update_data(0)
+
+    def search(self):
+        self.searcher = Searcher(self.file_name, self.extended_bytes)
 
     def get_size(self):
         res = self.file_size
@@ -25,14 +30,14 @@ class Buffer:
     def write_data(self, file):
         self.file.seek(0)
         for i in sorted(self.extended_bytes.keys()):
-            while i - file.tell() > self.chunkSize:
-                file.write(self.file.read(self.chunkSize))
+            while i - file.tell() > self.chunk_size:
+                file.write(self.file.read(self.chunk_size))
             file.write(self.file.read(i - file.tell()))
             file.write(self.extended_bytes[i])
-        data = self.file.read(self.chunkSize)
+        data = self.file.read(self.chunk_size)
         while len(data) != 0:
             file.write(data)
-            data = self.file.read(self.chunkSize)
+            data = self.file.read(self.chunk_size)
 
     # Обновление сдвига
     def update_data(self, shift):
@@ -84,6 +89,18 @@ class Buffer:
                 self.byte_index[iter] = pos
                 iter += 1
                 self.shown.append(byte[0])
+
+    def get_position(self, index, shift):
+        pos = 0
+        for i in range(index):
+            if i in self.extended_bytes:
+                for j in self.extended_bytes[i]:
+                    pos += 1
+            else:
+                pos += 1
+        for i in range(shift):
+            pos += 1
+        return pos
 
     # Обновление данных относительно позиции из hex поля
     def update_from_hex_position(self, position, char, is_insert):
@@ -150,6 +167,11 @@ class Buffer:
             self.extended_bytes[0].insert(0, byte[0])
         self.logger.add(log)
 
+        try:
+            self.searcher.start()
+        except AttributeError:
+            pass
+
     # Обновлении позиции относительно текстовых данных
     def update_from_text_position(self, position, char, is_insert):
         if char.isalnum():
@@ -184,6 +206,11 @@ class Buffer:
                                         None, b'', 0, True)
             self.extended_bytes[self.byte_index[index]] = bytearray()
         self.logger.add(log)
+
+        try:
+            self.searcher.start()
+        except AttributeError:
+            pass
 
     # Стирание данных относительно hex позиции
     def backspace_event_from_text(self, position):

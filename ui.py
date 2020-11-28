@@ -90,9 +90,15 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.layout.addItem(spacer, 1, 4, 1, 1)
 
         # Создаём глобальный layout
-        self.global_layout = QtWidgets.QHBoxLayout(self.central_widget)
-        self.global_layout.addLayout(self.layout)
-        self.global_layout.addWidget(self.scroll_bar)
+        self.search_layout = QtWidgets.QHBoxLayout()
+
+        self.main_layout = QtWidgets.QHBoxLayout()
+        self.main_layout.addLayout(self.layout)
+        self.main_layout.addWidget(self.scroll_bar)
+
+        self.global_layout = QtWidgets.QVBoxLayout(self.central_widget)
+        self.global_layout.addLayout(self.search_layout)
+        self.global_layout.addLayout(self.main_layout)
 
         # Создание менюбара
         self.menubar = QtWidgets.QMenuBar(self)
@@ -100,7 +106,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
 
         # Создание полей менюбара
         self.file_menu = QtWidgets.QMenu(self.menubar)
-        self.search_menu = QtWidgets.QMenu(self.menubar)
+        self.search_action = QtWidgets.QAction(self.menubar)
         self.undo_action = QtWidgets.QAction(self.menubar)
         self.redo_action = QtWidgets.QAction(self.menubar)
         self.setMenuBar(self.menubar)
@@ -113,12 +119,14 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.file_menu.addAction(self.open_action)
         self.file_menu.addAction(self.save_action)
         self.menubar.addAction(self.file_menu.menuAction())
-        self.menubar.addAction(self.search_menu.menuAction())
+        self.menubar.addAction(self.search_action)
         self.menubar.addAction(self.undo_action)
         self.menubar.addAction(self.redo_action)
 
         # Перевод интерфейса
         self.retranslate_ui()
+
+        self.search_action.triggered.connect(self.add_search_field)
 
         self.show()
 
@@ -130,11 +138,11 @@ class UiMainWindow(QtWidgets.QMainWindow):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("self", "HEX-editor"))
         self.file_menu.setTitle(_translate("self", "Файл"))
-        self.search_menu.setTitle(_translate("self", "Поиск"))
+        self.search_action.setText(_translate("self", "Поиск"))
         self.open_action.setText(_translate("self", "Открыть"))
         self.save_action.setText(_translate("self", "Сохранить"))
-        self.undo_action.setText(_translate("self", "<-"))
-        self.redo_action.setText(_translate("self", "->"))
+        self.undo_action.setText(_translate("self", "undo"))
+        self.redo_action.setText(_translate("self", "redo"))
 
     # Действие на нажатие клавиши на панели с hex данными
     def hex_key_event(self, event):
@@ -188,6 +196,41 @@ class UiMainWindow(QtWidgets.QMainWindow):
             self.text_field_key_pres.emit(cursor, event.text())
         self.bytes_decryption_field.setTextCursor(cursor)
 
+    def add_search_field(self):
+        self.del_search_field()
+
+        self.text_line = QtWidgets.QLineEdit()
+
+        self.count = QtWidgets.QSpinBox()
+        self.count.setFixedWidth(100)
+        self.count.setSuffix("/0")
+        self.count.setMaximum(0)
+
+        self.down_button = QtWidgets.QPushButton()
+        self.down_button.setFixedWidth(50)
+        self.up_button = QtWidgets.QPushButton()
+        self.up_button.setFixedWidth(50)
+        self.close_button = QtWidgets.QPushButton()
+        self.close_button.setFixedWidth(50)
+        self.close_button.setFixedHeight(35)
+        self.close_button.setFont(QtGui.QFont("Courier New", 25))
+        self.close_button.clicked.connect(self.del_search_field)
+
+        self.search_layout.addWidget(self.text_line)
+        self.search_layout.addWidget(self.up_button)
+        self.search_layout.addWidget(self.down_button)
+        self.search_layout.addWidget(self.count)
+        self.search_layout.addWidget(self.close_button)
+
+        _translate = QtCore.QCoreApplication.translate
+        self.setWindowTitle(_translate("self", "Byte searcher"))
+        self.down_button.setText("↓")
+        self.up_button.setText("↑")
+        self.close_button.setText("×")
+
+    def del_search_field(self):
+        for i in reversed(range(self.search_layout.count())):
+            self.search_layout.itemAt(i).widget().setParent(None)
 
 if __name__ == "__main__":
     import sys
