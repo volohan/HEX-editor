@@ -90,14 +90,14 @@ class Search(QObject):
             else:
                 self.temp.append(self.file.read(1)[0])
 
-        remainder = len(self.temp) - len(self.required)
         self.temp = self.temp[:len(self.required)]
 
         if self.temp == self.required:
             self.another_one_found.emit(0, 0)
 
         try:
-            for byte in self.extended_bytes[self.file.tell() - 1][-remainder:]:
+            for byte in self.extended_bytes[self.file.tell() - 1][
+                        len(self.required):]:
                 self.try_add(byte)
         except KeyError:
             pass
@@ -107,7 +107,10 @@ class Search(QObject):
         self.start = 0
         self.shift = 0
 
-        self.initial_filling()
+        try:
+            self.initial_filling()
+        except IndexError:
+            pass
 
         pos = self.file.tell()
         next_byte = self.file.read(1)

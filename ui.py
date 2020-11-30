@@ -232,6 +232,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         for i in reversed(range(self.search_layout.count())):
             self.search_layout.itemAt(i).widget().setParent(None)
 
+
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
