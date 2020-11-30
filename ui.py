@@ -207,26 +207,6 @@ class UiMainWindow(QtWidgets.QMainWindow):
             # Ввод текста в поле
             self.text_field_key_pres.emit(cursor, event.text())
         self.bytes_decryption_field.setTextCursor(cursor)
-        
-    def add_multicursor_field(self):
-        self.del_upper_field()
-
-        self.cursors_count = QtWidgets.QSpinBox()
-
-        self.help_button = QtWidgets.QPushButton()
-        self.help_button.setText("how it work?")
-
-        self.spacer = QtWidgets.QSpacerItem()
-
-        self.close_button = QtWidgets.QPushButton()
-        self.close_button.setFont(QtGui.QFont("Courier New", 25))
-        self.close_button.clicked.connect(self.del_upper_field)
-        self.close_button.setText("×")
-
-        self.upper_layout.addWidget(self.cursors_count)
-        self.upper_layout.addWidget(self.help_button)
-        self.upper_layout.addWidget(self.spacer)
-        self.upper_layout.addWidget(self.close_button)
 
     def add_search_field(self):
         self.del_upper_field()
