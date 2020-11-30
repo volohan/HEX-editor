@@ -135,7 +135,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.bytes_field.addAction(self.multicursor_action)
 
         self.cursor_reset_action = QtWidgets.QAction("Multicursor",
-                                                    self.bytes_field)
+                                                     self.bytes_field)
         self.cursor_reset_action.setShortcut(
             QtGui.QKeySequence("Ctrl+R"))
         self.bytes_field.addAction(self.cursor_reset_action)
