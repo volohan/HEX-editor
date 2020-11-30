@@ -54,6 +54,10 @@ class HexEditor:
         self.ui.hex_field_backspace.connect(self.backspace_event_from_hex)
         self.ui.text_field_backspace.connect(self.backspace_event_from_text)
 
+        self.ui.multicursor_action.triggered.connect(self.add_cursor)
+        self.ui.scroll_bar.valueChanged.connect(self.reset_cursors)
+        self.ui.cursor_reset_action.triggered.connect(self.reset_cursors)
+
     # Показ файла
     def show_file(self):
         self.bytes_buffer.update_data(self.ui.scroll_bar.value())
@@ -65,6 +69,13 @@ class HexEditor:
         if self.bytes_buffer.get_size() % 16 == 0:
             size -= 1
         self.ui.scroll_bar.setRange(0, size)
+
+    def add_cursor(self):
+        self.bytes_buffer.cursors.append(
+            self.ui.bytes_field.textCursor().position())
+
+    def reset_cursors(self):
+        self.bytes_buffer.cursors = []
 
     # Открытие файла
     def dialog_to_open(self):

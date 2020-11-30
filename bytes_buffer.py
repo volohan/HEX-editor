@@ -17,6 +17,8 @@ class Buffer:
         self.extended_bytes = {}
         self.logger = hex_logging.Logger(self.extended_bytes)
         self.update_data(0)
+        self.cursors = []
+        self.cursor_is_busy = False
 
     def search(self):
         self.searcher = Searcher(self.file_name, self.extended_bytes)
@@ -119,6 +121,7 @@ class Buffer:
                 new += char
                 self.add_byte(index, bytes.fromhex(new), True)
                 position += 2
+            position = self.multicursor(position, char, is_insert)
         return position
 
     def add_byte(self, index, byte, is_insert):
@@ -200,7 +203,10 @@ class Buffer:
                                         self.extended_bytes[
                                             self.byte_index[index]],
                                         b'', shift, True)
-            self.extended_bytes[self.byte_index[index]].pop(shift)
+            try:
+                self.extended_bytes[self.byte_index[index]].pop(shift)
+            except IndexError:
+                pass
         else:
             log = hex_logging.LogRecord(self.byte_index[index],
                                         None, b'', 0, True)
@@ -228,9 +234,10 @@ class Buffer:
             index = position // 3 - 1
             self.delete_byte(index)
             position -= 3
+            position = self.multicursor(position, '', True)
+        else:
+            position = self.multicursor(position, '', False)
 
-        if position % 17 == 16:
-            position -= 1
         return position
 
     # Показ десятков
@@ -274,3 +281,38 @@ class Buffer:
             else:
                 res += self.shown[index:index+1].decode(self.encoding)
         return res
+
+    def multicursor(self, position, char, is_insert_or_is_deleted):
+        if not self.cursor_is_busy:
+            self.cursor_is_busy = True
+            self.cursors = list(set(self.cursors))
+            self.cursors.sort()
+            if char == '':
+                if position % 3 == 0 and is_insert_or_is_deleted:
+                    for i in range(len(self.cursors)):
+                        if self.cursors[i] > position + 3:
+                            self.cursors[i] -= 3
+                for i in range(len(self.cursors) - 1, -1, -1):
+                    if self.cursors[i] % 3 == 0:
+                        if position + 3 > self.cursors[i] != 0 \
+                                and self.cursors != 0:
+                            position -= 3
+                        self.cursors[i] = self.backspace_event_from_hex(
+                            self.cursors[i])
+            else:
+                if not is_insert_or_is_deleted and (position - 1) % 3 == 0:
+                    for i in range(len(self.cursors)):
+                        if self.cursors[i] > position - 3:
+                            self.cursors[i] += 3
+                offset = 0
+                for i in range(len(self.cursors)):
+                    self.cursors[i] = offset\
+                        + self.update_from_hex_position(
+                        self.cursors[i], char, is_insert_or_is_deleted)
+                    if not is_insert_or_is_deleted \
+                            and (self.cursors[i] - 1) % 3 == 0:
+                        offset += 3
+                        if self.cursors[i] < position - 3:
+                            position += 3
+            self.cursor_is_busy = False
+        return position

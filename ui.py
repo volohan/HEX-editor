@@ -90,14 +90,14 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.layout.addItem(spacer, 1, 4, 1, 1)
 
         # Создаём глобальный layout
-        self.search_layout = QtWidgets.QHBoxLayout()
+        self.upper_layout = QtWidgets.QHBoxLayout()
 
         self.main_layout = QtWidgets.QHBoxLayout()
         self.main_layout.addLayout(self.layout)
         self.main_layout.addWidget(self.scroll_bar)
 
         self.global_layout = QtWidgets.QVBoxLayout(self.central_widget)
-        self.global_layout.addLayout(self.search_layout)
+        self.global_layout.addLayout(self.upper_layout)
         self.global_layout.addLayout(self.main_layout)
 
         # Создание менюбара
@@ -127,6 +127,18 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.retranslate_ui()
 
         self.search_action.triggered.connect(self.add_search_field)
+
+        self.multicursor_action = QtWidgets.QAction("Multicursor",
+                                                    self.bytes_field)
+        self.multicursor_action.setShortcut(
+            QtGui.QKeySequence("Ctrl+Q"))
+        self.bytes_field.addAction(self.multicursor_action)
+
+        self.cursor_reset_action = QtWidgets.QAction("Multicursor",
+                                                    self.bytes_field)
+        self.cursor_reset_action.setShortcut(
+            QtGui.QKeySequence("Ctrl+R"))
+        self.bytes_field.addAction(self.cursor_reset_action)
 
         self.show()
 
@@ -195,9 +207,29 @@ class UiMainWindow(QtWidgets.QMainWindow):
             # Ввод текста в поле
             self.text_field_key_pres.emit(cursor, event.text())
         self.bytes_decryption_field.setTextCursor(cursor)
+        
+    def add_multicursor_field(self):
+        self.del_upper_field()
+
+        self.cursors_count = QtWidgets.QSpinBox()
+
+        self.help_button = QtWidgets.QPushButton()
+        self.help_button.setText("how it work?")
+
+        self.spacer = QtWidgets.QSpacerItem()
+
+        self.close_button = QtWidgets.QPushButton()
+        self.close_button.setFont(QtGui.QFont("Courier New", 25))
+        self.close_button.clicked.connect(self.del_upper_field)
+        self.close_button.setText("×")
+
+        self.upper_layout.addWidget(self.cursors_count)
+        self.upper_layout.addWidget(self.help_button)
+        self.upper_layout.addWidget(self.spacer)
+        self.upper_layout.addWidget(self.close_button)
 
     def add_search_field(self):
-        self.del_search_field()
+        self.del_upper_field()
 
         self.text_line = QtWidgets.QLineEdit()
 
@@ -205,6 +237,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.count.setFixedWidth(100)
         self.count.setSuffix("/0")
         self.count.setMaximum(0)
+        self.count.setButtonSymbol(QtWidgets.QAbstractSpinBox.NoButtons)
 
         self.down_button = QtWidgets.QPushButton()
         self.down_button.setFixedWidth(50)
@@ -214,23 +247,21 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.close_button.setFixedWidth(50)
         self.close_button.setFixedHeight(35)
         self.close_button.setFont(QtGui.QFont("Courier New", 25))
-        self.close_button.clicked.connect(self.del_search_field)
+        self.close_button.clicked.connect(self.del_upper_field)
 
-        self.search_layout.addWidget(self.text_line)
-        self.search_layout.addWidget(self.up_button)
-        self.search_layout.addWidget(self.down_button)
-        self.search_layout.addWidget(self.count)
-        self.search_layout.addWidget(self.close_button)
+        self.upper_layout.addWidget(self.text_line)
+        self.upper_layout.addWidget(self.up_button)
+        self.upper_layout.addWidget(self.down_button)
+        self.upper_layout.addWidget(self.count)
+        self.upper_layout.addWidget(self.close_button)
 
-        _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle(_translate("self", "Byte searcher"))
         self.down_button.setText("↓")
         self.up_button.setText("↑")
         self.close_button.setText("×")
 
-    def del_search_field(self):
-        for i in reversed(range(self.search_layout.count())):
-            self.search_layout.itemAt(i).widget().setParent(None)
+    def del_upper_field(self):
+        for i in reversed(range(self.upper_layout.count())):
+            self.upper_layout.itemAt(i).widget().setParent(None)
 
 
 if __name__ == "__main__":
