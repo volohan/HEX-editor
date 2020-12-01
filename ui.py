@@ -126,6 +126,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         # Перевод интерфейса
         self.retranslate_ui()
 
+        # Создание действий для поиска и мультикурсора
         self.search_action.triggered.connect(self.add_search_field)
 
         self.multicursor_action = QtWidgets.QAction("Multicursor",
@@ -141,9 +142,6 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.bytes_field.addAction(self.cursor_reset_action)
 
         self.show()
-
-    def fake(self, a):
-        pass
 
     # Переименовывание элесентов
     def retranslate_ui(self):
@@ -208,6 +206,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
             self.text_field_key_pres.emit(cursor, event.text())
         self.bytes_decryption_field.setTextCursor(cursor)
 
+    # Показывает поисковик
     def add_search_field(self):
         self.del_upper_field()
 
@@ -239,6 +238,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.up_button.setText("↑")
         self.close_button.setText("×")
 
+    # Удаляет поисковик
     def del_upper_field(self):
         for i in reversed(range(self.upper_layout.count())):
             self.upper_layout.itemAt(i).widget().setParent(None)

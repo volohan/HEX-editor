@@ -16,18 +16,22 @@ class Searcher(QObject):
         self.coincidences = []
         self.extended_bytes = extended_bytes
 
+    # Следующее совпадение
     def next(self):
         return self.set_current(self.current + 1)
 
+    # Предыдущее совпадение
     def prev(self):
         return self.set_current(self.current - 1)
 
+    # Сброс поисковика
     def reset(self):
         self.count = 0
         self.current = 0
         self.coincidences = []
         self.reset_signal.emit()
 
+    # Установка текущего номера совпадения
     def set_current(self, value):
         if 1 <= value <= self.count:
             self.current = value
@@ -36,11 +40,13 @@ class Searcher(QObject):
             self.go_signal.emit(index, shift)
         return self.current
 
+    # Обновление количества совпадений
     def update_count(self, index, shift):
         self.coincidences.append((index, shift))
         self.count += 1
         self.change_count.emit(self.count)
 
+    # Установка байт, которые ищутся
     def set_required(self, required):
         try:
             self.required = bytes.fromhex(required)
@@ -48,6 +54,7 @@ class Searcher(QObject):
             self.required = b''
         self.start()
 
+    # Начать поиск
     def start(self):
         try:
             if len(self.required) == 0:
@@ -80,6 +87,7 @@ class Search(QObject):
         self.file.seek(0)
         self.extended_bytes = extended_bytes
 
+    # Первоначальное заполнение
     def initial_filling(self):
         while len(self.temp) < len(self.required):
             if self.file.tell() in self.extended_bytes:
@@ -102,6 +110,7 @@ class Search(QObject):
         except KeyError:
             pass
 
+    # Начать проходить по данным
     def run(self):
         self.temp = bytearray()
         self.start = 0
@@ -124,6 +133,7 @@ class Search(QObject):
             pos = self.file.tell()
             next_byte = self.file.read(1)
 
+    # Пытается соотнести байты с искомыми
     def try_add(self, byte):
         if self.start in self.extended_bytes:
             self.shift += 1

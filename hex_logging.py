@@ -6,6 +6,7 @@ class Logger:
         self.extended_bytes = extended_bytes
         self.logs = []
 
+    # Добавление записи
     def add(self, log_record):
         self.logs.append(log_record)
 

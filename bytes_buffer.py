@@ -20,15 +20,18 @@ class Buffer:
         self.cursors = []
         self.cursor_is_busy = False
 
+    # Создание поисковика
     def search(self):
         self.searcher = Searcher(self.file_name, self.extended_bytes)
 
+    # Размер файла
     def get_size(self):
         res = self.file_size
         for bytes in self.extended_bytes.values():
             res += len(bytes) - 1
         return res
 
+    # Запись данных в файл
     def write_data(self, file):
         self.file.seek(0)
         for i in sorted(self.extended_bytes.keys()):
@@ -50,6 +53,7 @@ class Buffer:
         self.shown = bytearray()
         self.byte_index = {}
 
+        # Пробизаемся по изменённым байтам и смотрим насколько нужно сдвигаться
         for i in sorted(self.extended_bytes.keys()):
             if i < start:
                 if i + len(self.extended_bytes[i]) < start:
@@ -73,10 +77,12 @@ class Buffer:
             else:
                 break
 
+        # Обработка крайнего случая
         self.file.seek(start)
         if self.file.tell() != 0:
             self.byte_index[-1] = self.file.tell() - 1
 
+        # Заполняем показываемые байты
         while len(self.shown) < self.row_count * 16:
             pos = self.file.tell()
             byte = self.file.read(1)
@@ -92,6 +98,7 @@ class Buffer:
                 iter += 1
                 self.shown.append(byte[0])
 
+    # Возвращает позицию байта в данных
     def get_position(self, index, shift):
         pos = 0
         for i in range(index):
@@ -121,9 +128,10 @@ class Buffer:
                 new += char
                 self.add_byte(index, bytes.fromhex(new), True)
                 position += 2
-            position = self.multicursor(position, char, is_insert)
+            position = self.handle_multicursor(position, char, is_insert)
         return position
 
+    # Добавляет байт в данные на основе его положения в bytes_field
     def add_byte(self, index, byte, is_insert):
         if not is_insert:
             index -= 1
@@ -190,6 +198,7 @@ class Buffer:
             position += 1
         return position
 
+    # Удаление байта из данных
     def delete_byte(self, index):
         if self.byte_index[index] in self.extended_bytes:
             shift = 0
@@ -234,9 +243,9 @@ class Buffer:
             index = position // 3 - 1
             self.delete_byte(index)
             position -= 3
-            position = self.multicursor(position, '', True)
+            position = self.handle_multicursor(position, '', True)
         else:
-            position = self.multicursor(position, '', False)
+            position = self.handle_multicursor(position, '', False)
 
         return position
 
@@ -282,7 +291,8 @@ class Buffer:
                 res += self.shown[index:index+1].decode(self.encoding)
         return res
 
-    def multicursor(self, position, char, is_insert_or_is_deleted):
+    # Управление другими курсорами
+    def handle_multicursor(self, position, char, is_insert_or_is_deleted):
         if not self.cursor_is_busy:
             self.cursor_is_busy = True
             self.cursors = list(set(self.cursors))

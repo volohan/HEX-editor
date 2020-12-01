@@ -9,7 +9,8 @@ __version__ = '2'
 __author__ = 'Volokhan Nikolai'
 
 
-def logger_do(func):
+# Действия для журналирования
+def action_for_logger(func):
     def do(self):
         bytes_field_position = self.ui.bytes_field.textCursor().position()
         bytes_decryption_field_position = \
@@ -70,10 +71,12 @@ class HexEditor:
             size -= 1
         self.ui.scroll_bar.setRange(0, size)
 
+    # Добавление курсора для мультикурсора
     def add_cursor(self):
         self.bytes_buffer.cursors.append(
             self.ui.bytes_field.textCursor().position())
 
+    # Сброс курсоров
     def reset_cursors(self):
         self.bytes_buffer.cursors = []
 
@@ -91,6 +94,7 @@ class HexEditor:
         except FileNotFoundError:
             pass
 
+    # Поисковик
     def search(self):
         self.bytes_buffer.search()
         self.bytes_buffer.searcher.change_count.connect(
@@ -107,14 +111,17 @@ class HexEditor:
                 self.ui.count.value()))
         self.bytes_buffer.searcher.go_signal.connect(self.go)
 
+    # Оповещение о количестве совпадений
     def set_suffix(self, count):
         self.ui.count.setSuffix(f"/{count}")
         self.ui.count.setMaximum(count)
 
+    # Сброс курсоров
     def reset(self):
         self.ui.count.setValue(0)
         self.set_suffix(0)
 
+    # Переход на позицию
     def go(self, index, shift):
         pos = self.bytes_buffer.get_position(index, shift)
         row = pos // 16
@@ -126,11 +133,11 @@ class HexEditor:
                             len(self.bytes_buffer.searcher.required) * 3)
         self.ui.bytes_field.setTextCursor(cursor)
 
-    @logger_do
+    @action_for_logger
     def undo(self):
         self.bytes_buffer.logger.undo()
 
-    @logger_do
+    @action_for_logger
     def redo(self):
         self.bytes_buffer.logger.redo()
 
