@@ -61,7 +61,7 @@ class Searcher(QObject):
                 raise ValueError
 
             try:
-                self.thread.exit()
+                self.thread.terminate()
             except AttributeError:
                 pass
 
