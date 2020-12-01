@@ -216,7 +216,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.count.setFixedWidth(100)
         self.count.setSuffix("/0")
         self.count.setMaximum(0)
-        self.count.setButtonSymbol(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.count.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
         self.down_button = QtWidgets.QPushButton()
         self.down_button.setFixedWidth(50)
