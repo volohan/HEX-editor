@@ -1,4 +1,3 @@
-from hex_searching import Searcher
 import hex_logging
 import os
 
@@ -19,10 +18,6 @@ class Buffer:
         self.update_data(0)
         self.cursors = []
         self.cursor_is_busy = False
-
-    # Создание поисковика
-    def search(self):
-        self.searcher = Searcher(self.file_name, self.extended_bytes)
 
     # Размер файла
     def get_size(self):
@@ -178,11 +173,6 @@ class Buffer:
             self.extended_bytes[0].insert(0, byte[0])
         self.logger.add(log)
 
-        try:
-            self.searcher.start()
-        except AttributeError:
-            pass
-
     # Обновлении позиции относительно текстовых данных
     def update_from_text_position(self, position, char, is_insert):
         if char.isalnum():
@@ -221,11 +211,6 @@ class Buffer:
                                         None, b'', 0, True)
             self.extended_bytes[self.byte_index[index]] = bytearray()
         self.logger.add(log)
-
-        try:
-            self.searcher.start()
-        except AttributeError:
-            pass
 
     # Стирание данных относительно hex позиции
     def backspace_event_from_text(self, position):

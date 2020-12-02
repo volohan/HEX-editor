@@ -1,5 +1,6 @@
 import sys
 from PyQt5 import QtWidgets, QtGui
+from hex_searching import Searcher
 from ui import UiMainWindow
 from file_manager import open_file, save_file
 from cursor_manager import cursor_controller_for_text, \
@@ -10,8 +11,8 @@ __author__ = 'Volokhan Nikolai'
 
 
 # Действия для журналирования
-def action_for_logger(func):
-    def do(self):
+def save_cursor(func):
+    def do(self, *args):
         bytes_field_position = self.ui.bytes_field.textCursor().position()
         bytes_decryption_field_position = \
             self.ui.bytes_decryption_field.textCursor().position()
@@ -27,12 +28,17 @@ def action_for_logger(func):
         self.ui.bytes_decryption_field.setTextCursor(
             bytes_decryption_field_cursor)
 
+    return do
+
+
+def requires_research(func):
+    def foo(self, *args):
+        func(self, *args)
         try:
-            self.bytes_buffer.searcher.start()
+            self.searcher.start()
         except AttributeError:
             pass
-
-    return do
+    return foo
 
 
 class HexEditor:
@@ -59,17 +65,24 @@ class HexEditor:
         self.ui.scroll_bar.valueChanged.connect(self.reset_cursors)
         self.ui.cursor_reset_action.triggered.connect(self.reset_cursors)
 
+        self.ui.undo_action.triggered.connect(self.undo)
+        self.ui.redo_action.triggered.connect(self.redo)
+        self.ui.search_action.triggered.connect(self.search)
+
     # Показ файла
     def show_file(self):
-        self.bytes_buffer.update_data(self.ui.scroll_bar.value())
-        self.ui.bytes_field.setText(self.bytes_buffer.to_hex())
-        self.ui.bytes_decryption_field.setText(self.bytes_buffer.to_text())
-        self.ui.count_units.setText(self.bytes_buffer.units_count())
-        self.ui.count_tens.setText(self.bytes_buffer.tens_count())
-        size = self.bytes_buffer.get_size() // 16
-        if self.bytes_buffer.get_size() % 16 == 0:
-            size -= 1
-        self.ui.scroll_bar.setRange(0, size)
+        try:
+            self.bytes_buffer.update_data(self.ui.scroll_bar.value())
+            self.ui.bytes_field.setText(self.bytes_buffer.to_hex())
+            self.ui.bytes_decryption_field.setText(self.bytes_buffer.to_text())
+            self.ui.count_units.setText(self.bytes_buffer.units_count())
+            self.ui.count_tens.setText(self.bytes_buffer.tens_count())
+            size = self.bytes_buffer.get_size() // 16
+            if self.bytes_buffer.get_size() % 16 == 0:
+                size -= 1
+            self.ui.scroll_bar.setRange(0, size)
+        except AttributeError:
+            pass
 
     # Добавление курсора для мультикурсора
     def add_cursor(self):
@@ -84,9 +97,7 @@ class HexEditor:
     def dialog_to_open(self):
         try:
             self.bytes_buffer = open_file()
-            self.ui.undo_action.triggered.connect(self.undo)
-            self.ui.redo_action.triggered.connect(self.redo)
-            self.ui.search_action.triggered.connect(self.search)
+            self.ui.del_upper_field()
             self.show_file()
             self.ui.scroll_bar.setValue(0)
             self.ui.bytes_field.setReadOnly(False)
@@ -96,20 +107,28 @@ class HexEditor:
 
     # Поисковик
     def search(self):
-        self.bytes_buffer.search()
-        self.bytes_buffer.searcher.change_count.connect(
-            lambda count: self.set_suffix(self.bytes_buffer.searcher.count))
-        self.ui.text_line.textChanged.connect(
-            self.bytes_buffer.searcher.set_required)
+        '''
+        try:
+            self.ui.text_line.textChanged.disconect()
+            self.ui.down_button.clicked.disconnect()
+            self.ui.up_button.clicked.disconnect()
+            self.ui.count.valueChanged.disconnect()
+        except AttributeError:
+            pass
+        '''
+
+        self.searcher = Searcher(self.bytes_buffer)
+        self.searcher.change_count.connect(
+            lambda count: self.set_suffix(self.searcher.count))
+        self.ui.text_line.textChanged.connect(self.searcher.set_required)
         self.ui.down_button.clicked.connect(
-            lambda: self.ui.count.setValue(self.bytes_buffer.searcher.next()))
+            lambda: self.ui.count.setValue(self.searcher.next()))
         self.ui.up_button.clicked.connect(
-            lambda: self.ui.count.setValue(self.bytes_buffer.searcher.prev()))
-        self.bytes_buffer.searcher.reset_signal.connect(self.reset)
+            lambda: self.ui.count.setValue(self.searcher.prev()))
+        self.searcher.reset_signal.connect(self.reset)
         self.ui.count.valueChanged.connect(
-            lambda: self.bytes_buffer.searcher.set_current(
-                self.ui.count.value()))
-        self.bytes_buffer.searcher.go_signal.connect(self.go)
+            lambda: self.searcher.set_current(self.ui.count.value()))
+        self.searcher.go_signal.connect(self.go)
 
     # Оповещение о количестве совпадений
     def set_suffix(self, count):
@@ -130,16 +149,24 @@ class HexEditor:
         cursor.setPosition(pos % 16 * 3)
         cursor.movePosition(QtGui.QTextCursor.Right,
                             QtGui.QTextCursor.KeepAnchor,
-                            len(self.bytes_buffer.searcher.required) * 3)
+                            len(self.searcher.required) * 3)
         self.ui.bytes_field.setTextCursor(cursor)
 
-    @action_for_logger
+    @requires_research
+    @save_cursor
     def undo(self):
-        self.bytes_buffer.logger.undo()
+        try:
+            self.bytes_buffer.logger.undo()
+        except AttributeError:
+            pass
 
-    @action_for_logger
+    @requires_research
+    @save_cursor
     def redo(self):
-        self.bytes_buffer.logger.redo()
+        try:
+            self.bytes_buffer.logger.redo()
+        except AttributeError:
+            pass
 
     # Сохраниение файла
     def dialog_to_save(self):
@@ -156,6 +183,7 @@ class HexEditor:
             pass
 
     # Обновление данных относительно позиции из hex поля
+    @requires_research
     def update_from_hex_position(self, cursor, char):
         try:
             is_insert = self.ui.insert_button.isChecked()
@@ -169,6 +197,7 @@ class HexEditor:
             pass
 
     # Обновлении позиции относительно текстовых данных
+    @requires_research
     def update_from_text_position(self, cursor, char):
         try:
             is_insert = self.ui.insert_button.isChecked()
@@ -182,6 +211,7 @@ class HexEditor:
             pass
 
     # Стирание данных относительно hex позиции
+    @requires_research
     def backspace_event_from_text(self, cursor):
         try:
             position = self.bytes_buffer.backspace_event_from_text(
@@ -192,6 +222,7 @@ class HexEditor:
             pass
 
     # Стирание данных относительно текстовой позиции
+    @requires_research
     def backspace_event_from_hex(self, cursor):
         try:
             position = self.bytes_buffer.backspace_event_from_hex(

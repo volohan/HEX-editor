@@ -7,14 +7,14 @@ class Searcher(QObject):
     change_count = pyqtSignal(int)
     reset_signal = pyqtSignal()
 
-    def __init__(self, file_name, extended_bytes):
+    def __init__(self, bytes_buffer):
         super().__init__()
-        self.file = open(file_name, "rb")
+        self.file = open(bytes_buffer.file_name, "rb")
         self.required = b""
         self.count = 0
         self.current = 0
         self.coincidences = []
-        self.extended_bytes = extended_bytes
+        self.extended_bytes = bytes_buffer.extended_bytes
 
     # Следующее совпадение
     def next(self):
