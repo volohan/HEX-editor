@@ -1,3 +1,4 @@
+import sys
 import hex_logging
 import os
 
@@ -6,7 +7,7 @@ class Buffer:
     def __init__(self, file_name):
         self.row_count = 30
         self.chunk_size = 4194304
-        self.encoding = 'mac_cyrillic'
+        self.encoding = sys.getdefaultencoding()
         self._16_base = ['0', '1', '2', '3', '4', '5', '6', '7',
                          '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
         # Запоминание данных
@@ -273,7 +274,10 @@ class Buffer:
             if self.shown[index] < 20:
                 res += '.'
             else:
-                res += self.shown[index:index+1].decode(self.encoding)
+                try:
+                    res += self.shown[index:index+1].decode(self.encoding)
+                except UnicodeDecodeError:
+                    res += '.'
         return res
 
     # Управление другими курсорами

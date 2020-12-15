@@ -84,7 +84,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(self.buffer.to_hex(), expected)
 
     def test_to_text(self):
-        expected = '–≤—Л–љ–µ—Б–Є –ґ–\nµ –Љ—Г—Б–Њ—А!'
+        expected = '............ ...\n. ..........!'
         self.buffer.update_data(4)
         self.assertEqual(self.buffer.to_text(), expected)
 

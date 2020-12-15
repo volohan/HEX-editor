@@ -11,6 +11,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.resize(640, 480)
+        thickening = 40
         font = QtGui.QFont("Courier New", 12)
         font_metrics = QtGui.QFontMetrics(font)
         char_width = font_metrics.horizontalAdvance('a')
@@ -28,7 +29,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         # Создание поля с байтами
         self.bytes_field = QtWidgets.QTextEdit(self.central_widget)
         self.bytes_field.setFont(font)
-        self.bytes_field.setMinimumWidth(char_width * 16 * 3)
+        self.bytes_field.setMinimumWidth(char_width * 16 * 3 + thickening)
         self.bytes_field.setVerticalScrollBarPolicy(
             QtCore.Qt.ScrollBarAlwaysOff)
         self.bytes_field.setReadOnly(True)
@@ -37,7 +38,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
 
         # Создание поля с перечислением десятков
         self.count_tens = QtWidgets.QTextEdit(self.central_widget)
-        self.count_tens.setFixedWidth(char_width * 9)
+        self.count_tens.setFixedWidth(char_width * 9 + thickening)
         self.count_tens.setFont(font)
         self.count_tens.setVerticalScrollBarPolicy(
             QtCore.Qt.ScrollBarAlwaysOff)
@@ -45,7 +46,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
 
         # Создание поля с расшифровкой байтов
         self.bytes_decryption_field = QtWidgets.QTextEdit(self.central_widget)
-        self.bytes_decryption_field.setFixedWidth(char_width * 17)
+        self.bytes_decryption_field.setFixedWidth(char_width * 17 + thickening)
         self.bytes_decryption_field.setFont(font)
         self.bytes_decryption_field.setVerticalScrollBarPolicy(
             QtCore.Qt.ScrollBarAlwaysOff)
@@ -106,9 +107,10 @@ class UiMainWindow(QtWidgets.QMainWindow):
 
         # Создание полей менюбара
         self.file_menu = QtWidgets.QMenu(self.menubar)
-        self.search_action = QtWidgets.QAction(self.menubar)
-        self.undo_action = QtWidgets.QAction(self.menubar)
-        self.redo_action = QtWidgets.QAction(self.menubar)
+        self.actions_menu = QtWidgets.QMenu(self.menubar)
+        self.search_action = QtWidgets.QAction(self)
+        self.undo_action = QtWidgets.QAction(self)
+        self.redo_action = QtWidgets.QAction(self)
         self.setMenuBar(self.menubar)
 
         # Создание подпунктов вкладки "Файл" в меню
@@ -118,10 +120,11 @@ class UiMainWindow(QtWidgets.QMainWindow):
         # Установка подпунктов
         self.file_menu.addAction(self.open_action)
         self.file_menu.addAction(self.save_action)
+        self.actions_menu.addAction(self.search_action)
+        self.actions_menu.addAction(self.undo_action)
+        self.actions_menu.addAction(self.redo_action)
         self.menubar.addAction(self.file_menu.menuAction())
-        self.menubar.addAction(self.search_action)
-        self.menubar.addAction(self.undo_action)
-        self.menubar.addAction(self.redo_action)
+        self.menubar.addAction(self.actions_menu.menuAction())
 
         # Перевод интерфейса
         self.retranslate_ui()
@@ -148,6 +151,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("self", "HEX-editor"))
         self.file_menu.setTitle(_translate("self", "Файл"))
+        self.actions_menu.setTitle(_translate("self", "Возможности"))
         self.search_action.setText(_translate("self", "Поиск"))
         self.open_action.setText(_translate("self", "Открыть"))
         self.save_action.setText(_translate("self", "Сохранить"))

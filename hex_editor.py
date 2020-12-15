@@ -107,28 +107,21 @@ class HexEditor:
 
     # Поисковик
     def search(self):
-        '''
         try:
-            self.ui.text_line.textChanged.disconect()
-            self.ui.down_button.clicked.disconnect()
-            self.ui.up_button.clicked.disconnect()
-            self.ui.count.valueChanged.disconnect()
+            self.searcher = Searcher(self.bytes_buffer)
+            self.searcher.change_count.connect(
+                lambda count: self.set_suffix(self.searcher.count))
+            self.ui.text_line.textChanged.connect(self.searcher.set_required)
+            self.ui.down_button.clicked.connect(
+                lambda: self.ui.count.setValue(self.searcher.next()))
+            self.ui.up_button.clicked.connect(
+                lambda: self.ui.count.setValue(self.searcher.prev()))
+            self.searcher.reset_signal.connect(self.reset)
+            self.ui.count.valueChanged.connect(
+                lambda: self.searcher.set_current(self.ui.count.value()))
+            self.searcher.go_signal.connect(self.go)
         except AttributeError:
             pass
-        '''
-
-        self.searcher = Searcher(self.bytes_buffer)
-        self.searcher.change_count.connect(
-            lambda count: self.set_suffix(self.searcher.count))
-        self.ui.text_line.textChanged.connect(self.searcher.set_required)
-        self.ui.down_button.clicked.connect(
-            lambda: self.ui.count.setValue(self.searcher.next()))
-        self.ui.up_button.clicked.connect(
-            lambda: self.ui.count.setValue(self.searcher.prev()))
-        self.searcher.reset_signal.connect(self.reset)
-        self.ui.count.valueChanged.connect(
-            lambda: self.searcher.set_current(self.ui.count.value()))
-        self.searcher.go_signal.connect(self.go)
 
     # Оповещение о количестве совпадений
     def set_suffix(self, count):
@@ -180,6 +173,8 @@ class HexEditor:
             self.ui.count_units.clear()
             delattr(self, 'bytes_buffer')
         except FileNotFoundError:
+            pass
+        except AttributeError:
             pass
 
     # Обновление данных относительно позиции из hex поля
